@@ -28,4 +28,4 @@ var opts = {
   paddingX: 20
 };
 
-CanvasTextWrapper(canvas, 'What an awesome library!', opts);
+CanvasTextWrapper(ctx, 'What an awesome library!', opts);

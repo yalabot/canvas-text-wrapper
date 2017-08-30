@@ -1,6 +1,6 @@
 (function (root) {
 
-  function CanvasTextWrapper(canvas, text, options) {
+  function CanvasTextWrapper(context, text, options) {
     'use strict';
 
     var defaults = {
@@ -17,7 +17,6 @@
       paddingY: 0,
       fitParent: false,
       strokeText: false,
-      renderHDPI: true,
       textDecoration: 'none'
     };
 
@@ -27,41 +26,12 @@
       opts[key] = options.hasOwnProperty(key) ? options[key] : defaults[key];
     }
 
-    var context = canvas.getContext('2d');
+    var canvas = context.canvas;
     context.font = opts.font;
     context.textBaseline = 'bottom';
 
-    var scale = 1;
     var devicePixelRatio = (typeof global !== 'undefined') ? global.devicePixelRatio : root.devicePixelRatio;
-
-    if (opts.renderHDPI && devicePixelRatio > 1) {
-      var tempCtx = {};
-
-      // store context settings in a temp object before scaling otherwise they will be lost
-      for (var key in context) {
-        tempCtx[key] = context[key];
-      }
-
-      var canvasWidth = canvas.width;
-      var canvasHeight = canvas.height;
-      scale = devicePixelRatio;
-
-      canvas.width = canvasWidth * scale;
-      canvas.height = canvasHeight * scale;
-      canvas.style.width = canvasWidth * scale * 0.5 + 'px';
-      canvas.style.height = canvasHeight * scale * 0.5 + 'px';
-
-      // restore context settings
-      for (var key in tempCtx) {
-        try {
-          context[key] = tempCtx[key];
-        } catch (e) {
-
-        }
-      }
-
-      context.scale(scale, scale);
-    }
+    var scale = devicePixelRatio;
 
     var EL_WIDTH = (!opts.fitParent ? canvas.width : canvas.parentNode.clientWidth) / scale;
     var EL_HEIGHT = (!opts.fitParent ? canvas.height : canvas.parentNode.clientHeight) / scale;
@@ -89,7 +59,7 @@
       } while (text.indexOf('\n\n') > -1);
       return text;
     }
-    
+
     function setFont(fontSize) {
       if (!fontParts) fontParts = (!opts.sizeToFill) ? opts.font.split(/\b\d+px\b/i) : context.font.split(/\b\d+px\b/i);
       context.font = fontParts[0] + fontSize + 'px' + fontParts[1];
@@ -270,7 +240,7 @@
         textPos.y = parseInt(textPos.y) + lineHeight;
         if (lines[i] !== skipLineOnMatch) {
           context.fillText(lines[i], textPos.x, textPos.y);
-        
+
           if (opts.strokeText) {
             context.strokeText(lines[i], textPos.x, textPos.y);
           }
@@ -340,9 +310,6 @@
 
       if (typeof opts.strokeText !== 'boolean')
         throw new TypeError('Property "strokeText" must be a Boolean.');
-
-      if (typeof opts.renderHDPI !== 'boolean')
-        throw new TypeError('Property "renderHDPI" must be a Boolean.');
 
       if (opts.textDecoration.toLocaleLowerCase() !== 'none' && opts.textDecoration.toLocaleLowerCase() !== 'underline')
         throw new TypeError('Property "textDecoration" must be set to either "none" or "underline".');
